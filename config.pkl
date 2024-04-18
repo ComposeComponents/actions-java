@@ -5,6 +5,10 @@ on: OnTrigger?
 
 jobs: Mapping<String(matches(Regex("^[A-Za-z][A-Za-z\\s\\d_-]*$"))), Job>?
 
+permissions: Mapping<Permission, List<String>>?
+
+typealias Permission = "contents"
+
 class OnTrigger {
     push: PushTriggerConfig?
     pull_request: PullRequestTriggerConfig?
@@ -21,6 +25,10 @@ class PullRequestTriggerConfig {
 class Job {
     strategy: JobStrategy?
     `runs-on`: String = "ubuntu-latest"
+    outputs: Mapping<String, String>?
+    `if`: String?
+    permissions: Mapping<Permission, List<String>>?
+    needs: List<String>?
     steps: List<Step>
 }
 
@@ -29,12 +37,15 @@ class JobStrategy {
 }
 
 abstract class Step {
+    id: String?
     name: String?
+    `if`: String?
 }
 
 class ActionStep extends Step {
     uses: String
-    with: Mapping<String, Any>
+    with: Mapping<String, Any>?
+    env: Mapping<String, Any>?
 }
 
 class CommandStep extends Step {
