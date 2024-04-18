@@ -2,6 +2,7 @@ import "config.pkl"
 import "common.pkl"
 
 hidden modules: List<String>
+hidden sonatypeEnabled = true
 
 name = "Build"
 
@@ -143,7 +144,7 @@ jobs = new Mapping {
             }
         )  
     }
-    ["publish-sonatype"] = new config.Job {
+    ["publish-sonatype"] = if(sonatypeEnabled) new config.Job {
         strategy = new config.JobStrategy {
             matrix = new Mapping {
                 ["module"] = modules
@@ -174,5 +175,5 @@ jobs = new Mapping {
                 }
             )
         )  
-    }
+    } else null
 }
