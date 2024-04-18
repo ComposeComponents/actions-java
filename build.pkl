@@ -34,12 +34,7 @@ jobs = new Mapping {
             ["versionCode"] = "${{ steps.run_number.outputs.versionCode }}"
         }
         steps = List(
-            new config.ActionStep {
-                uses = "actions/checkout@v3"
-                with = new Mapping {
-                    ["fetch-depth"] = 0
-                }
-            },
+            common.checkout,
             new config.ActionStep {
                 name = "Install GitVersion"
                 uses = "gittools/actions/gitversion/setup@v0.9.6"
