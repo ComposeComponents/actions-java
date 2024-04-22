@@ -1,13 +1,13 @@
-import "config.pkl"
+import "package://github.com/BenMMcLean/pkl-github-actions/releases/download/v0.1.0-alpha.45/pkl-github-actions@0.1.0-alpha.45#/actions.pkl" as actions
 
-checkout = new config.ActionStep {
+checkout = new actions.ActionStep {
     uses = "actions/checkout@v3"
     with = new Mapping {
         ["fetch-depth"] = 0
     }
 }
 
-setupJdk = new config.ActionStep {
+setupJdk = new actions.ActionStep {
     name = "Set up JDK 17"
     uses = "actions/setup-java@v3"
     with = new Mapping {
@@ -20,7 +20,7 @@ function gradle(
     actionName: String, 
     command: String,
     actionEnv: Mapping<String, Any>?
-): config.ActionStep = new config.ActionStep {
+): actions.ActionStep = new actions.ActionStep {
     name = "\(actionName) with Gradle"
     uses = "gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1"
     with = new Mapping {

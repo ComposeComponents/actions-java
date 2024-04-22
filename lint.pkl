@@ -1,37 +1,37 @@
-import "config.pkl"
+extends "package://github.com/BenMMcLean/pkl-github-actions/releases/download/v0.1.0-alpha.45/pkl-github-actions@0.1.0-alpha.45#/actions.pkl"
 import "common.pkl"
 
 hidden modules: List<String>
 
 name = "Lint"
 
-on = new config.OnTrigger {
-    push = new config.PushTriggerConfig {
-        branches = List(
-            "main",
-            "develop",
-            "release/**"
-        )
-    }
-    pull_request = new config.PullRequestTriggerConfig {
-        branches = List(
-            "main",
+on = new On {
+    push = new Push {
+        branches = new Listing {
+            "main"
             "develop"
-        )
+            "release/**"
+        }
+    }
+    pull_request = new PullRequest {
+        branches = new Listing {
+            "main"
+            "develop"
+        }
     }
 }
 
 jobs = new Mapping {
-    ["lint"] = new config.Job {
-        strategy = new config.JobStrategy {
+    ["lint"] = new Job {
+        strategy = new JobStrategy {
             matrix = new Mapping {
                 ["module"] = modules
             }
         }
-        steps = List(
-            common.checkout,
-            common.setupJdk,
+        steps = new Listing {
+            common.checkout
+            common.setupJdk
             common.gradle("Lint", "${{ matrix.module }}:lintVitalRelease", null)
-        )
+        }
     }
 }
