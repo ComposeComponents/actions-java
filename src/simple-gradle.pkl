@@ -1,0 +1,38 @@
+open module simple
+extends "base.pkl"
+import "common.pkl"
+
+hidden modules: List<String>
+hidden jobName: String
+hidden gradleTask: String
+
+on = new On {
+    push = new Push {
+        branches = new Listing {
+            "main"
+            "develop"
+            "release/**"
+        }
+    }
+    pull_request = new PullRequest {
+        branches = new Listing {
+            "main"
+            "develop"
+        }
+    }
+}
+
+jobs = new Mapping {
+    ["\(jobName)"] = new Job {
+        strategy = new JobStrategy {
+            matrix = new Mapping {
+                ["module"] = modules
+            }
+        }
+        steps = new Listing {
+            common.checkout
+            common.setupJdk
+            common.gradle("\(jobName.capitalize())", "${{ matrix.module }}:\(gradleTask)", null)
+        }
+    }
+}
