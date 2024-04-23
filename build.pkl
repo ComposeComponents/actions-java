@@ -104,13 +104,11 @@ jobs = new Mapping {
             new ActionStep {
                 id = "create_release"
                 name = "Create Release"
-                uses = "actions/create-release@v1"
-                env = new Mapping {
-                    ["GITHUB_TOKEN"] = "${{ secrets.GITHUB_TOKEN }}"
-                }
+                uses = "softprops/action-gh-release@v2"
                 with = new Mapping {
+                    ["token"] = "${{ secrets.GITHUB_TOKEN }}"
                     ["tag_name"] = "v${{ needs.version.outputs.version }}"
-                    ["release_name"] = "Release ${{ needs.version.outputs.version }}"
+                    ["name"] = "Release ${{ needs.version.outputs.version }}"
                     ["draft"] = false
                     ["prerelease"] = "${{ github.ref != 'refs/heads/main' }}"
                 }
