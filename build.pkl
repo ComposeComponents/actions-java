@@ -68,13 +68,14 @@ jobs = new Mapping {
         steps = new Listing {
             common.checkout
             common.setupJdk
-            common.gradle(
+            (common.gradle(
                 "Build", 
-                "${{ matrix.module }}:build",
-                new Mapping {
+                "${{ matrix.module }}:build"
+            )) {
+                env = new Mapping {
                     ["ORG_GRADLE_PROJECT_version"] = "${{ needs.version.outputs.version }}"
                 }
-            )
+            }
             new CommandStep {
                 name = "Rename AAR"
                 run = "mv ./${{ matrix.module }}/build/outputs/aar/${{ matrix.module }}-${{ needs.version.outputs.version }}.aar ./${{ matrix.module }}.aar"
@@ -165,7 +166,7 @@ jobs = new Mapping {
         steps = new Listing {
             common.checkout
             common.setupJdk
-            common.gradle(
+            (common.gradle(
                 "Build", 
                 """
                 -Pversion=${{ needs.version.outputs.version }} 
@@ -174,14 +175,15 @@ jobs = new Mapping {
                 -Ppom.scm.developerConnection="scm:git:ssh://github.com/${{ github.repository }}" 
                 -Ppom.scm.url="https://github.com/${{ github.repository }}" 
                 ${{ matrix.module }}:publishToCentralPortal --no-daemon
-                """,
-                new Mapping {
+                """
+            )) {
+                env = new Mapping {
                     ["ORG_GRADLE_PROJECT_sonatypePassword"] = "${{ secrets.SONATYPE_PASSWORD }}"
                     ["ORG_GRADLE_PROJECT_sonatypeUsername"] = "${{ secrets.SONATYPE_USERNAME }}"
                     ["ORG_GRADLE_PROJECT_signingKey"] = "${{ secrets.PGP_SECRET }}"
                     ["ORG_GRADLE_PROJECT_signingPassword"] = "${{ secrets.PGP_PASSPHRASE }}"
                 }
-            )
+            }
         }  
     } else null
 }

@@ -18,13 +18,11 @@ setupJdk = new actions.ActionStep {
 
 function gradle(
     actionName: String, 
-    command: String,
-    actionEnv: Mapping<String, Any>?
+    command: String
 ): actions.ActionStep = new actions.ActionStep {
     name = "\(actionName) with Gradle"
     uses = "gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1"
     with = new Mapping {
         ["arguments"] = "\(command)"
     }
-    env = actionEnv
 }
