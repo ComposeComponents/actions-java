@@ -46,8 +46,8 @@ jobs = new Mapping {
                 id = "gitversion"
                 uses = "gittools/actions/gitversion/execute@v0.9.6"
                 with = new Mapping {
-                    ["useactionsFile"] = true
-                    ["actionsFilePath"] = "./gitversion.yml"
+                    ["useConfigFile"] = true
+                    ["configFilePath"] = "./gitversion.yml"
                 }
             }
             new CommandStep {
@@ -163,6 +163,7 @@ jobs = new Mapping {
         needs = new Listing {
             "version"
         }
+        `if` = "github.ref == 'refs/heads/main'"
         steps = new Listing {
             common.checkout
             common.setupJdk
