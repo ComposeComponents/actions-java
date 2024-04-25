@@ -1,8 +1,9 @@
 extends "src/base.pkl"
 import "src/common.pkl"
 
-hidden modules: Listing<String>
+hidden modules: Listing<String>(length > 0)
 hidden versionUpdateCommit: Boolean = false
+hidden extraTags: Boolean = true
 
 local overwriteFile = new ActionStep {
     uses = "DamianReeves/write-file-action@master"
@@ -101,46 +102,54 @@ jobs = new Mapping {
         steps = new Listing {
             common.checkout
             common.create_release
-            for (mdule in modules) {
-                new ActionStep {
-                    uses = "tvdias/github-tagger@v0.0.1"
-                    with = new Mapping {
-                        ["repo-token"] = "${{ secrets.GITHUB_TOKEN }}"
-                        ["tag"] = "\(mdule)@${{ needs.version.outputs.version }}"
+            ...(
+                if(extraTags) new Listing {
+                    for (mdule in modules) {
+                        new ActionStep {
+                            uses = "tvdias/github-tagger@v0.0.1"
+                            with = new Mapping {
+                                ["repo-token"] = "${{ secrets.GITHUB_TOKEN }}"
+                                ["tag"] = "\(mdule)@${{ needs.version.outputs.version }}"
+                            }
+                        }
+                    }
+                } else new Listing {}
+            )
+        }
+    }
+    ...(
+        if (versionUpdateCommit) new Mapping {
+            ["version-update"] = new Job {
+                needs = new Listing {
+                    "version"
+                    "should-release"
+                }
+                permissions = new Mapping {
+                    ["contents"] = "write"
+                }
+                `if` = "needs.should-release.outputs.proceed"
+                steps = new Listing {
+                    common.checkout
+                    overwriteFile
+                    new ActionStep {
+                        uses = "jacobtomlinson/gha-find-replace@v3"
+                        with = new Mapping {
+                            ["find"] = "${{ needs.version.outputs.current-version }}"
+                            ["replace"] = "${{ needs.version.outputs.version }}"
+                            ["regex"] = false
+                            ["include"] = "README.md"
+                        }
+                    }
+                    new ActionStep {
+                        uses = "stefanzweifel/git-auto-commit-action@v5"
+                        with = new Mapping {
+                            ["commit_message"] = "Bump version number from ${{ needs.version.outputs.current-version }} to ${{ needs.version.outputs.version }}"
+                        }
                     }
                 }
             }
-        }
-    }
-    ["version-update"] = if (versionUpdateCommit) new Job {
-        needs = new Listing {
-            "version"
-            "should-release"
-        }
-        permissions = new Mapping {
-            ["contents"] = "write"
-        }
-        `if` = "needs.should-release.outputs.proceed"
-        steps = new Listing {
-            common.checkout
-            overwriteFile
-            new ActionStep {
-                uses = "jacobtomlinson/gha-find-replace@v3"
-                with = new Mapping {
-                    ["find"] = "${{ needs.version.outputs.current-version }}"
-                    ["replace"] = "${{ needs.version.outputs.version }}"
-                    ["regex"] = false
-                    ["include"] = "README.md"
-                }
-            }
-            new ActionStep {
-                uses = "stefanzweifel/git-auto-commit-action@v5"
-                with = new Mapping {
-                    ["commit_message"] = "Bump version number from ${{ needs.version.outputs.current-version }} to ${{ needs.version.outputs.version }}"
-                }
-            }
-        }
-    } else null
+        } else new Mapping {}
+    )
     ["upload-project"] = new Job {
         needs = new Listing {
             "version"
@@ -163,16 +172,18 @@ jobs = new Mapping {
                 name = "Package project"
                 run = "pkl project package src"
             }
-            new CommandStep {
-                name = "Upload Release Artifact"
-                env = new Mapping {
-                    ["GITHUB_TOKEN"] = "${{ secrets.GITHUB_TOKEN }}"
+            for (mdule in modules) {
+                new CommandStep {
+                    name = "Upload Release Artifact"
+                    env = new Mapping {
+                        ["GITHUB_TOKEN"] = "${{ secrets.GITHUB_TOKEN }}"
+                    }
+                    run = """
+                    TAG=\(mdule)@${{ needs.version.outputs.version }}
+                    gh release upload v${{ needs.version.outputs.version }} .out/$TAG/*
+                    gh release edit v${{ needs.version.outputs.version }} -t v${{ needs.version.outputs.version }}
+                    """
                 }
-                run = """
-                TAG=pkl-strings@${{ needs.version.outputs.version }}
-                gh release upload v${{ needs.version.outputs.version }} .out/$TAG/*
-                gh release edit v${{ needs.version.outputs.version }} -t v${{ needs.version.outputs.version }}
-                """
             }
         }
     }
