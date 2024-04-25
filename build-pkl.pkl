@@ -112,37 +112,35 @@ jobs = new Mapping {
             }
         }
     }
-    [[versionUpdateCommit]] {
-        ["version-update"] = new Job {
-            needs = new Listing {
-                "version"
-                "should-release"
-            }
-            permissions = new Mapping {
-                ["contents"] = "write"
-            }
-            `if` = "needs.should-release.outputs.proceed"
-            steps = new Listing {
-                common.checkout
-                overwriteFile
-                new ActionStep {
-                    uses = "jacobtomlinson/gha-find-replace@v3"
-                    with = new Mapping {
-                        ["find"] = "${{ needs.version.outputs.current-version }}"
-                        ["replace"] = "${{ needs.version.outputs.version }}"
-                        ["regex"] = false
-                        ["include"] = "README.md"
-                    }
+    ["version-update"] = if (versionUpdateCommit) new Job {
+        needs = new Listing {
+            "version"
+            "should-release"
+        }
+        permissions = new Mapping {
+            ["contents"] = "write"
+        }
+        `if` = "needs.should-release.outputs.proceed"
+        steps = new Listing {
+            common.checkout
+            overwriteFile
+            new ActionStep {
+                uses = "jacobtomlinson/gha-find-replace@v3"
+                with = new Mapping {
+                    ["find"] = "${{ needs.version.outputs.current-version }}"
+                    ["replace"] = "${{ needs.version.outputs.version }}"
+                    ["regex"] = false
+                    ["include"] = "README.md"
                 }
-                new ActionStep {
-                    uses = "stefanzweifel/git-auto-commit-action@v5"
-                    with = new Mapping {
-                        ["commit_message"] = "Bump version number from ${{ needs.version.outputs.current-version }} to ${{ needs.version.outputs.version }}"
-                    }
+            }
+            new ActionStep {
+                uses = "stefanzweifel/git-auto-commit-action@v5"
+                with = new Mapping {
+                    ["commit_message"] = "Bump version number from ${{ needs.version.outputs.current-version }} to ${{ needs.version.outputs.version }}"
                 }
             }
         }
-    }
+    } else null
     ["upload-project"] = new Job {
         needs = new Listing {
             "version"
@@ -178,4 +176,4 @@ jobs = new Mapping {
             }
         }
     }
-}
+}.toMap().filter((k,v) -> v != null).toMapping()

@@ -174,4 +174,4 @@ jobs = new Mapping {
             }
         }  
     } else null
-}
+}.toMap().filter((k,v) -> v != null).toMapping()
