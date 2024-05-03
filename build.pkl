@@ -73,7 +73,7 @@ jobs = new Mapping {
             }
             new CommandStep {
                 name = "Rename AAR"
-                run = "mv ./build/libs/\(projectName)-${{ needs.version.outputs.version }}.jar ./\(projectName).jar"
+                run = "mv ./build/libs/\(projectName).jar ./\(projectName).jar"
             }
             new ActionStep {
                 uses = "actions/upload-artifact@master"
