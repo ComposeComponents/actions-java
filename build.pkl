@@ -96,6 +96,7 @@ jobs = new Mapping {
             ["upload_url"] = "${{ steps.create_release.outputs.upload_url }}"
         }
         steps = new Listing {
+            common.checkout
             common.create_release
         }
     }
