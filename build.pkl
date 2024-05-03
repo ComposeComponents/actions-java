@@ -1,7 +1,7 @@
 extends "src/base.pkl"
 import "src/common.pkl"
 
-hidden modules: List<String>
+hidden projectName: String
 hidden sonatypeEnabled = true
 
 name = "Build"
@@ -70,7 +70,7 @@ jobs = new Mapping {
             common.setupJdk
             (common.gradle(
                 "Build", 
-                "${{ matrix.module }}:build"
+                "build"
             )) {
                 env = new Mapping {
                     ["ORG_GRADLE_PROJECT_version"] = "${{ needs.version.outputs.version }}"
@@ -78,13 +78,13 @@ jobs = new Mapping {
             }
             new CommandStep {
                 name = "Rename AAR"
-                run = "mv ./${{ matrix.module }}/build/outputs/aar/${{ matrix.module }}-${{ needs.version.outputs.version }}.aar ./${{ matrix.module }}.aar"
+                run = "mv ./build/libs/\(projectName)-${{ needs.version.outputs.version }}.jar ./\(projectName).jar"
             }
             new ActionStep {
                 uses = "actions/upload-artifact@master"
                 with = new Mapping {
-                    ["name"] = "${{ matrix.module }}-aar"
-                    ["path"] = "./${{ matrix.module }}.aar"
+                    ["name"] = "\(projectName)-jar"
+                    ["path"] = "./\(projectName).jar"
                 }
             }
         }
@@ -119,7 +119,7 @@ jobs = new Mapping {
             new ActionStep {
                 uses = "actions/download-artifact@master"
                 with = new Mapping {
-                    ["name"] = "${{ matrix.module }}-aar"
+                    ["name"] = "\(projectName)-jar"
                     ["path"] = "./"
                 }
             }
@@ -131,8 +131,8 @@ jobs = new Mapping {
                 }
                 with = new Mapping {
                     ["upload_url"] = "${{ needs.release.outputs.upload_url }}"
-                    ["asset_path"] = "./${{ matrix.module }}.aar"
-                    ["asset_name"] = "${{ matrix.module }}-v${{ needs.version.outputs.version }}.aar"
+                    ["asset_path"] = "./\(projectName).jar"
+                    ["asset_name"] = "\(projectName)-v${{ needs.version.outputs.version }}.jar"
                     ["asset_content_type"] = "application/zip"
                 }
             }

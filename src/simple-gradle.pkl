@@ -24,15 +24,10 @@ on = new On {
 
 jobs = new Mapping {
     ["\(jobName)"] = new Job {
-        strategy = new JobStrategy {
-            matrix = new Mapping {
-                ["module"] = modules
-            }
-        }
         steps = new Listing {
             common.checkout
             common.setupJdk
-            common.gradle("\(jobName.capitalize())", "${{ matrix.module }}:\(gradleTask)")
+            common.gradle("\(jobName.capitalize())", "\(gradleTask)")
         }
     }
 }

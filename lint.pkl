@@ -1,5 +1,5 @@
 extends "src/simple-gradle.pkl"
 
 jobName = "lint"
-gradleTask = "lintVitalRelease"
+gradleTask = "lint"
 name = "Lint"
