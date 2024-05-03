@@ -57,11 +57,6 @@ jobs = new Mapping {
         }
     }
     ["build"] = new Job {
-        strategy = new JobStrategy {
-            matrix = new Mapping {
-                ["module"] = modules
-            }
-        }
         needs = new Listing {
             "version"
         }
@@ -105,11 +100,6 @@ jobs = new Mapping {
         }
     }
     ["publish-release"] = new Job {
-        strategy = new JobStrategy {
-            matrix = new Mapping {
-                ["module"] = modules
-            }
-        }
         needs = new Listing {
             "version"
             "release"
@@ -139,11 +129,6 @@ jobs = new Mapping {
         }  
     }
     ["publish-sonatype"] = if(sonatypeEnabled) new Job {
-        strategy = new JobStrategy {
-            matrix = new Mapping {
-                ["module"] = modules
-            }
-        }
         permissions = new Mapping {
             ["contents"] = "read"
         }
@@ -162,7 +147,7 @@ jobs = new Mapping {
                 -Ppom.scm.connection="scm:git:git://github.com/${{ github.repository }}" 
                 -Ppom.scm.developerConnection="scm:git:ssh://github.com/${{ github.repository }}" 
                 -Ppom.scm.url="https://github.com/${{ github.repository }}" 
-                ${{ matrix.module }}:publishToCentralPortal --no-daemon
+                publishToCentralPortal --no-daemon
                 """
             )) {
                 env = new Mapping {
