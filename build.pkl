@@ -3,6 +3,7 @@ import "src/common.pkl"
 
 hidden projectName: String
 hidden sonatypeEnabled = true
+hidden javadocEnabled = false
 
 name = "Build"
 
@@ -160,4 +161,53 @@ jobs = new Mapping {
             }
         }  
     } else null
+    ["publish-javadoc"] = if (javadocEnabled)
+        new Job {
+            permissions = new Mapping {
+                ["contents"] = "write"
+            }
+            needs = new Listing {
+                "version"
+            }
+            steps = new Listing {
+                (common.checkout) {
+                    with = new Mapping {
+                        path = "repository"
+                    }
+                }
+                (common.checkout) {
+                    with = new Mapping {
+                        ref = "gh-pages"
+                        path = "pages"
+                    }
+                }
+                common.setupJdk
+                new ActionStep {
+                    name = "Setup Gradle"
+                    uses = "gradle/actions/setup-gradle@v3"
+                }
+                new CommandStep {
+                    name = "Javadoc with Gradle"
+                    run = "./repository/gradlew javadoc"
+                }
+                new CommandStep {
+                    name = "Move to GH Pages Branch"
+                    run = "mv ./repository/build/docs/javadoc/* ./pages/javadoc/v${{ needs.version.outputs.version }}/"
+                }
+                new ActionStep {
+                    name = "Generate Directory Listings"
+                    uses = "jayanta525/github-pages-directory-listing@v4.0.0"
+                    with = new Mapping {
+                        ["folder"] = "./pages/javadoc"
+                    }
+                }
+                new ActionStep {
+                    uses = "stefanzweifel/git-auto-commit-action@v5"
+                    with = new Mapping {
+                        ["repository"] = "./pages"
+                    }
+                }
+            }
+        }
+    else null
 }.toMap().filter((k,v) -> v != null).toMapping()
