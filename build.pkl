@@ -172,13 +172,13 @@ jobs = new Mapping {
             steps = new Listing {
                 (common.checkout) {
                     with = new Mapping {
-                        path = "repository"
+                        ["path"] = "repository"
                     }
                 }
                 (common.checkout) {
                     with = new Mapping {
-                        ref = "gh-pages"
-                        path = "pages"
+                        ["ref"] = "gh-pages"
+                        ["path"] = "pages"
                     }
                 }
                 common.setupJdk
@@ -188,11 +188,14 @@ jobs = new Mapping {
                 }
                 new CommandStep {
                     name = "Javadoc with Gradle"
-                    run = "./repository/gradlew javadoc"
+                    run = "cd ./repository/ && ./gradlew javadoc"
                 }
                 new CommandStep {
                     name = "Move to GH Pages Branch"
-                    run = "mv ./repository/build/docs/javadoc/* ./pages/javadoc/v${{ needs.version.outputs.version }}/"
+                    run = """
+                    mkdir --parents ./pages/javadoc/v${{ needs.version.outputs.version }}/
+                    mv ./repository/build/docs/javadoc/* ./pages/javadoc/v${{ needs.version.outputs.version }}/
+                    """
                 }
                 new ActionStep {
                     name = "Generate Directory Listings"
