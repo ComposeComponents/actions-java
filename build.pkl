@@ -195,6 +195,7 @@ jobs = new Mapping {
                     run = """
                     mkdir --parents ./pages/javadoc/v${{ needs.version.outputs.version }}/
                     mv ./repository/build/docs/javadoc/* ./pages/javadoc/v${{ needs.version.outputs.version }}/
+                    rm ./pages/javadoc/index.html
                     """
                 }
                 new ActionStep {
