@@ -1,5 +1,5 @@
-extends "src/base.pkl"
-import "src/common.pkl"
+extends "common/base.pkl"
+import "common/common.pkl"
 
 hidden projectName: String
 hidden sonatypeEnabled = true
@@ -37,7 +37,7 @@ jobs = new Mapping {
             common.checkout
             new ActionStep {
                 name = "Install GitVersion"
-                uses = "gittools/actions/gitversion/setup@v0.9.6"
+                uses = "gittools/actions/gitversion/setup@v3.0.0"
                 with = new Mapping {
                     ["versionSpec"] = "5.x"
                 }
@@ -45,7 +45,7 @@ jobs = new Mapping {
             new ActionStep {
                 name = "Use GitVersion"
                 id = "gitversion"
-                uses = "gittools/actions/gitversion/execute@v0.9.6"
+                uses = "gittools/actions/gitversion/execute@v3.0.0"
                 with = new Mapping {
                     ["useConfigFile"] = true
                     ["configFilePath"] = "./gitversion.yml"
@@ -64,20 +64,19 @@ jobs = new Mapping {
         steps = new Listing {
             common.checkout
             common.setupJdk
-            (common.gradle(
+            ...common.gradle(
                 "Build", 
-                "build"
-            )) {
-                env = new Mapping {
+                "build",
+                new Mapping {
                     ["ORG_GRADLE_PROJECT_version"] = "${{ needs.version.outputs.version }}"
                 }
-            }
+            )
             new CommandStep {
                 name = "Rename AAR"
                 run = "mv ./build/libs/\(projectName)-${{ needs.version.outputs.version }}.jar ./\(projectName).jar"
             }
             new ActionStep {
-                uses = "actions/upload-artifact@master"
+                uses = "actions/upload-artifact@v4"
                 with = new Mapping {
                     ["name"] = "\(projectName)-jar"
                     ["path"] = "./\(projectName).jar"
@@ -98,7 +97,7 @@ jobs = new Mapping {
         }
         steps = new Listing {
             common.checkout
-            common.create_release
+            ...common.create_release
         }
     }
     ["publish-release"] = new Job {
@@ -109,7 +108,7 @@ jobs = new Mapping {
         }
         steps = new Listing {
             new ActionStep {
-                uses = "actions/download-artifact@master"
+                uses = "actions/download-artifact@v4"
                 with = new Mapping {
                     ["name"] = "\(projectName)-jar"
                     ["path"] = "./"
@@ -117,7 +116,7 @@ jobs = new Mapping {
             }
             new ActionStep {
                 name = "Upload Artifact to Release"
-                uses = "actions/upload-release-asset@v1"
+                uses = "shogo82148/actions-upload-release-asset@v1"
                 env = new Mapping {
                     ["GITHUB_TOKEN"] = "${{ secrets.GITHUB_TOKEN }}"
                 }
@@ -141,7 +140,7 @@ jobs = new Mapping {
         steps = new Listing {
             common.checkout
             common.setupJdk
-            (common.gradle(
+            ...common.gradle(
                 "Build", 
                 """
                 -Pversion=${{ needs.version.outputs.version }} 
@@ -150,15 +149,14 @@ jobs = new Mapping {
                 -Ppom.scm.developerConnection="scm:git:ssh://github.com/${{ github.repository }}" 
                 -Ppom.scm.url="https://github.com/${{ github.repository }}" 
                 publishToCentralPortal --no-daemon
-                """
-            )) {
-                env = new Mapping {
+                """,
+                new Mapping {
                     ["ORG_GRADLE_PROJECT_sonatypePassword"] = "${{ secrets.SONATYPE_PASSWORD }}"
                     ["ORG_GRADLE_PROJECT_sonatypeUsername"] = "${{ secrets.SONATYPE_USERNAME }}"
                     ["ORG_GRADLE_PROJECT_signingKey"] = "${{ secrets.PGP_SECRET }}"
                     ["ORG_GRADLE_PROJECT_signingPassword"] = "${{ secrets.PGP_PASSPHRASE }}"
                 }
-            }
+            )
         }  
     } else null
     ["publish-javadoc"] = if (javadocEnabled)

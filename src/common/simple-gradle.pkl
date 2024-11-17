@@ -27,7 +27,7 @@ jobs = new Mapping {
         steps = new Listing {
             common.checkout
             common.setupJdk
-            common.gradle("\(jobName.capitalize())", "\(gradleTask)")
+            ...common.gradle("\(jobName.capitalize())", "\(gradleTask)", new Mapping {})
         }
     }
 }

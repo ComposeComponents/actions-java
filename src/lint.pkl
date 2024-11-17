@@ -1,4 +1,4 @@
-extends "src/simple-gradle.pkl"
+extends "common/simple-gradle.pkl"
 
 jobName = "lint"
 gradleTask = "lint"

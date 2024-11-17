@@ -1,0 +1,9 @@
+amends "../src/render.pkl"
+
+workflows = new Listing {
+    (import("../src/build.pkl")) {
+        projectName = "test"
+    }
+    import("../src/lint.pkl")
+    import("../src/test.pkl")
+}
