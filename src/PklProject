@@ -1,7 +1,7 @@
 amends "pkl:project"
 
 package {
-  name = "actions"
+  name = "actions-java"
   baseUri = "package://components.emilym.cl/actions-java" 
   version = read("file:src/.version").text.trim()
   packageZipUrl = "https://components.emilym.cl/actions-java/\(name)@\(version).zip"
