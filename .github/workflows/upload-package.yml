@@ -1,0 +1,78 @@
+name: Upload Package
+'on':
+  push:
+    branches:
+    - main
+    - develop
+    - release/**
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.gitversion.outputs.semVer }}
+      versionCode: ${{ steps.run-number.outputs.versionCode }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v3.0.0
+      with:
+        versionSpec: 5.x
+    - id: gitversion
+      name: Use GitVersion
+      uses: gittools/actions/gitversion/execute@v3.0.0
+      with:
+        useConfigFile: true
+        configFilePath: ./gitversion.yml
+    - id: run-number
+      run: |-
+        current_run_number=${{ github.run_number }}
+        new_number=$((current_run_number))
+        echo "versionCode=${new_number}" >> $GITHUB_OUTPUT
+    - name: Generate Job Summary
+      run: |-
+        echo "# Version Info
+        Semantic Version: ${{ steps.gitversion.outputs.semVer }}
+        Version Number: ${{ steps.run-number.outputs.versionCode }}" >> $GITHUB_STEP_SUMMARY
+  release:
+    permissions:
+      contents: write
+    needs:
+    - version
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Create tag for release
+      uses: rickstaa/action-create-tag@v1
+      with:
+        tag: v${{ needs.version.outputs.version }}
+    - id: create_release
+      name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: v${{ needs.version.outputs.version }}
+        name: Release ${{ needs.version.outputs.version }}
+        draft: false
+        prerelease: ${{ github.ref != 'refs/heads/main' }}
+  upload:
+    permissions:
+      contents: write
+    needs:
+    - version
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - run: echo "${{ needs.version.outputs.version }}" > src/.version
+    - uses: emilymclean/pkl-upload-package@v1.1.1
+      with:
+        input-directory: src
