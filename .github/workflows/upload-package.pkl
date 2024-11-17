@@ -83,7 +83,7 @@ jobs = new Mapping {
                 """
             }
             new ActionStep {
-                uses = "emilymclean/pkl-upload-package@v1.1.1"
+                uses = "emilymclean/pkl-upload-package@v1.1.2"
                 with = new Mapping {
                     ["input-directory"] = "src"
                 }

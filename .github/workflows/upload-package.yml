@@ -73,6 +73,6 @@ jobs:
       with:
         fetch-depth: 0
     - run: echo "${{ needs.version.outputs.version }}" > src/.version
-    - uses: emilymclean/pkl-upload-package@v1.1.1
+    - uses: emilymclean/pkl-upload-package@v1.1.2
       with:
         input-directory: src
