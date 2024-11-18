@@ -41,7 +41,7 @@ create_release = new Listing {
 function gradle(
     actionName: String, 
     command: String,
-    env: Mapping
+    _env: Mapping
 ): Listing<actions.Step> = new Listing {
     new actions.ActionStep {
         name = "Setup gradle"
@@ -50,5 +50,6 @@ function gradle(
     new actions.CommandStep {
         name = "\(actionName) with Gradle"
         run = "./gradlew \(command)"
+        env = _env
     }
 }
